@@ -21,10 +21,14 @@ module Machinist
     #
     # Pass in attributes to override values defined in the blueprint.
     def make(attributes = {})
-      lathe = lathe_class.new(@klass, new_serial_number, attributes)
+      # Collect overrides from the hierarchy
+      overrided_attributes = OverridedAttributes.get_from &@block
+      each_ancestor { |blueprint| overrided_attributes += OverridedAttributes.get_from(&blueprint.block) }
+
+      lathe = lathe_class.new(@klass, new_serial_number, attributes, overrided_attributes)
 
       lathe.instance_eval(&@block)
-      each_ancestor {|blueprint| lathe.instance_eval(&blueprint.block) }
+      each_ancestor { |blueprint| lathe.instance_eval(&blueprint.block) }
 
       lathe.object
     end

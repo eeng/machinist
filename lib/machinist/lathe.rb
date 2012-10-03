@@ -7,13 +7,14 @@ module Machinist
   # including method_missing to let the blueprint define attributes.
   class Lathe
 
-    def initialize(klass, serial_number, attributes = {})
-      @klass               = klass
-      @serial_number       = serial_number
-      @assigned_attributes = {}
+    def initialize(klass, serial_number, attributes = {}, overrided_attributes = {})
+      @klass                = klass
+      @serial_number        = serial_number
+      @assigned_attributes  = {}
 
-      @object              = @klass.new
-      attributes.each {|key, value| assign_attribute(key, value) }
+      @object               = @klass.new
+      @overrides            = Overrides.new(self, attributes)
+      attributes.reject { |key, _| overrided_attributes.include?(key) }.each {|key, value| assign_attribute(key, value) }
     end
 
     # Returns a unique serial number for the object under construction.
@@ -35,8 +36,11 @@ module Machinist
     undef_method :id   if respond_to?(:id)
     undef_method :type if respond_to?(:type)
 
-  protected
+    def overrides &block
+      @overrides.instance_eval(&block)
+    end
 
+  protected
     def make_attribute(attribute, args, &block) #:nodoc:
       count = args.shift if args.first.is_a?(Fixnum)
       if count

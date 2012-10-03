@@ -97,5 +97,4 @@ describe Machinist::Machinable do
       exception.blueprint.klass.should == MachinableSpecs::Post
     end
   end
-
 end
