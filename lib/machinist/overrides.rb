@@ -11,13 +11,16 @@ module Machinist
     end
   end
 
-  class OverridedAttributes
-    def initialize
+  class OverridedAttributes    
+    attr_reader :assigned_attributes
+
+    def initialize attributes
       @accumulator = Accumulator.new
+      @assigned_attributes = attributes
     end
 
-    def self.get_from &block
-      new.tap { |oa| oa.instance_eval(&block) }.attributes
+    def self.get_from attributes, &block
+      new(attributes).tap { |oa| oa.instance_eval(&block) }.attributes
     end
 
     def method_missing(attribute, *args, &block) #:nodoc:

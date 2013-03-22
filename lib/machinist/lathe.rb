@@ -6,6 +6,7 @@ module Machinist
   # The Lathe implements all the methods that are available to the blueprint,
   # including method_missing to let the blueprint define attributes.
   class Lathe
+    attr_reader :assigned_attributes
 
     def initialize(klass, serial_number, attributes = {}, overrided_attributes = {})
       @klass                = klass
