@@ -25,7 +25,7 @@ module Machinist
 
     def method_missing(attribute, *args, &block) #:nodoc:
       return unless attribute.to_sym == :overrides
-      @accumulator.instance_eval(&block)
+      @accumulator.instance_exec(@assigned_attributes, &block)
     end
 
     def attributes

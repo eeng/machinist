@@ -17,7 +17,8 @@ describe Machinist::Blueprint do
 
     OverridesSpecs::Post.blueprint do
       title { "First Post" }
-      overrides do
+      overrides do |attrs|
+        attrs[:body] = attrs.delete(:msg)
         title_and_body { |tb| object.title, object.body = tb.split(' - ') }
         body_and_title { |tb| object.body, object.title = tb.split(' | ') }
       end
@@ -41,5 +42,10 @@ describe Machinist::Blueprint do
     post = OverridesSpecs::Subpost.make :title_and_body => "Title - Body"
     post.title.should == "Title"    
     post.body.should == "Body"    
+  end
+
+  it "should allow to override attributes hash directly" do
+    post = OverridesSpecs::Post.make :msg => 'Msg'
+    post.body.should == 'Msg'
   end
 end
