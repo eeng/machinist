@@ -1,26 +1,14 @@
 module Machinist
-  class Overrides
-    def initialize lathe, attributes
-      @lathe = lathe
-      @attributes = attributes
-    end
-
-    def method_missing(attribute, *args, &block) #:nodoc:
-      return unless @attributes.has_key?(attribute)
-      @lathe.instance_exec @attributes[attribute], &block
-    end
-  end
-
   class OverridedAttributes    
     attr_reader :assigned_attributes
 
-    def initialize attributes
-      @accumulator = Accumulator.new
+    def initialize object, attributes
+      @accumulator = Accumulator.new object
       @assigned_attributes = attributes
     end
 
-    def self.get_from attributes, &block
-      new(attributes).tap { |oa| oa.instance_eval(&block) }.attributes
+    def self.get_from object, attributes, &block
+      new(object, attributes).tap { |oa| oa.instance_eval(&block) }
     end
 
     def method_missing(attribute, *args, &block) #:nodoc:
@@ -33,10 +21,11 @@ module Machinist
     end
 
     class Accumulator
-      attr_reader :attributes
+      attr_reader :attributes, :object
 
-      def initialize
+      def initialize object
         @attributes = []
+        @object = object
       end
 
       def method_missing(attribute, *args, &block) #:nodoc:

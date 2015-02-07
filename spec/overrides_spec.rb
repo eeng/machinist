@@ -19,33 +19,26 @@ describe Machinist::Blueprint do
       title { "First Post" }
       overrides do |attrs|
         attrs[:body] = attrs.delete(:msg)
-        title_and_body { |tb| object.title, object.body = tb.split(' - ') }
-        body_and_title { |tb| object.body, object.title = tb.split(' | ') }
+        attrs[:title] = object.class.name
       end
     end
   end
 
-  it "supports overriding attributes that are not defined in the object" do
-    post = OverridesSpecs::Post.make :title_and_body => "Title - Body"
-    post.title.should == "Title"    
-    post.body.should == "Body"    
-
-    post = OverridesSpecs::Post.make :body_and_title => "Body | Title"
-    post.title.should == "Title"    
-    post.body.should == "Body"    
+  it "should allow to override attributes hash directly" do
+    post = OverridesSpecs::Post.make :msg => 'Msg'
+    post.body.should == 'Msg'
   end
 
   it "works with inheritance" do
     OverridesSpecs::Subpost.blueprint do
     end
 
-    post = OverridesSpecs::Subpost.make :title_and_body => "Title - Body"
-    post.title.should == "Title"    
-    post.body.should == "Body"    
+    post = OverridesSpecs::Subpost.make :msg => 'Msg'
+    post.body.should == 'Msg'
   end
 
-  it "should allow to override attributes hash directly" do
-    post = OverridesSpecs::Post.make :msg => 'Msg'
-    post.body.should == 'Msg'
+  it "should have access to object" do
+    post = OverridesSpecs::Post.make
+    post.title.should == 'OverridesSpecs::Post'
   end
 end

@@ -8,14 +8,17 @@ module Machinist
   class Lathe
     attr_reader :assigned_attributes
 
-    def initialize(klass, serial_number, attributes = {}, overrided_attributes = {})
+    def initialize(blueprint, klass, serial_number, attributes = {})
       @klass                = klass
       @serial_number        = serial_number
       @assigned_attributes  = {}
 
       @object               = @klass.new
-      @overrides            = Overrides.new(self, attributes)
-      attributes.reject { |key, _| overrided_attributes.include?(key) }.each {|key, value| assign_attribute(key, value) }
+
+      OverridedAttributes.get_from @object, attributes, &blueprint.block
+      blueprint.each_ancestor { |ancestor| OverridedAttributes.get_from @object, attributes, &ancestor.block }
+
+      attributes.each {|key, value| assign_attribute(key, value) }
     end
 
     # Returns a unique serial number for the object under construction.
@@ -25,6 +28,9 @@ module Machinist
 
     # Returns the object under construction.
     attr_reader :object
+
+    def overrides(*)
+    end
 
     def method_missing(attribute, *args, &block) #:nodoc:
       unless attribute_assigned?(attribute)
@@ -36,10 +42,6 @@ module Machinist
     # (Both of these are deprecated in Ruby 1.8 anyway.)
     undef_method :id   if respond_to?(:id)
     undef_method :type if respond_to?(:type)
-
-    def overrides &block
-      @overrides.instance_eval(&block)
-    end
 
   protected
     def make_attribute(attribute, args, &block) #:nodoc:
